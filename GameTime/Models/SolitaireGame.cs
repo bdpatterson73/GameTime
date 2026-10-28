@@ -16,12 +16,14 @@ public sealed class SolitaireGame
 
     public int MoveCount { get; private set; }
     public int StockPasses { get; private set; }
+    public int DrawCount { get; }
 
     private readonly Random _random;
 
-    public SolitaireGame(int? seed = null)
+    public SolitaireGame(int? seed = null, int drawCount = 3)
     {
         _random = seed.HasValue ? new Random(seed.Value) : new Random();
+        DrawCount = Math.Clamp(drawCount, 1, 3);
         Deal();
     }
 
@@ -141,11 +143,17 @@ public sealed class SolitaireGame
         {
             case MoveKind.Draw:
                 {
-                    var card = Stock.Cards[^1];
-                    Stock.Cards.RemoveAt(Stock.Count - 1);
-                    card.IsFaceUp = true;
-                    Waste.Cards.Add(card);
-                    return new List<Card> { card };
+                    int n = Math.Min(DrawCount, Stock.Count);
+                    var moved = new List<Card>(n);
+                    for (int i = 0; i < n; i++)
+                    {
+                        var card = Stock.Cards[^1];
+                        Stock.Cards.RemoveAt(Stock.Count - 1);
+                        card.IsFaceUp = true;
+                        Waste.Cards.Add(card);
+                        moved.Add(card);
+                    }
+                    return moved;
                 }
             case MoveKind.RecycleWaste:
                 {

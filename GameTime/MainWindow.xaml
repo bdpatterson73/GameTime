@@ -83,6 +83,10 @@
                     <Button x:Name="AutoPlayButton" Style="{StaticResource ActionButton}" Content="▶  Auto Play" Click="AutoPlayButton_Click"/>
                     <Button x:Name="HintButton" Style="{StaticResource ActionButton}" Content="💡  Hint Move" Click="HintButton_Click"/>
 
+                    <CheckBox x:Name="Draw3Check" Content="Draw 3 (classic)" IsChecked="True"
+                              Foreground="#FFB8D8C4" FontSize="13" Margin="2,12,0,0"
+                              Checked="DrawModeChanged" Unchecked="DrawModeChanged"/>
+
                     <TextBlock Text="SPEED" Style="{StaticResource StatLabel}" Margin="0,14,0,0"/>
                     <Slider x:Name="SpeedSlider" Minimum="1" Maximum="10" Value="5" TickFrequency="1" IsSnapToTickEnabled="True"/>
 

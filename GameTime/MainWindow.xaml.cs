@@ -59,10 +59,12 @@ namespace GameTime
             return img;
         }
 
+        private int DrawMode => Draw3Check?.IsChecked == true ? 3 : 1;
+
         private void StartNewGame()
         {
             StopAutoPlay();
-            _game = new SolitaireGame();
+            _game = new SolitaireGame(drawCount: DrawMode);
             _autoPlayer = null;
             _selectedCard = null;
             _stats.CurrentMoves = 0;
@@ -93,6 +95,13 @@ namespace GameTime
         private Point CardPosition(Pile pile, int indexInPile)
         {
             var p = PilePosition(pile);
+            if (pile.Type == PileType.Waste)
+            {
+                // Fan the most recently drawn cards so a draw-3 is visible.
+                int fanStart = Math.Max(0, pile.Count - _game.DrawCount);
+                int fanIndex = Math.Max(0, indexInPile - fanStart);
+                return new Point(p.X + fanIndex * _cardWidth * 0.3, p.Y);
+            }
             if (pile.Type != PileType.Tableau) return p;
             double y = p.Y;
             for (int i = 0; i < indexInPile; i++)
@@ -437,7 +446,7 @@ namespace GameTime
                         await Task.Delay(won ? 1600 : 900);
                         if (!_autoPlaying) break;
 
-                        _game = new SolitaireGame();
+                        _game = new SolitaireGame(drawCount: DrawMode);
                         _autoPlayer = new AutoPlayer(_game);
                         _stats.CurrentMoves = 0;
                         _stats.CardsToFoundation = 0;
@@ -466,6 +475,12 @@ namespace GameTime
         #region Buttons
 
         private void NewGameButton_Click(object sender, RoutedEventArgs e) => StartNewGame();
+
+        private void DrawModeChanged(object sender, RoutedEventArgs e)
+        {
+            if (_game is null || _autoPlaying) return;
+            StartNewGame();
+        }
 
         private async void HintButton_Click(object sender, RoutedEventArgs e)
         {
