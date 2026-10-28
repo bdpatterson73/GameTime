@@ -5,8 +5,120 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:GameTime"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="GameTime Solitaire" Height="820" Width="1280"
+        WindowStartupLocation="CenterScreen"
+        Background="#FF0B3D20">
+    <Window.Resources>
+        <Style x:Key="StatLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FFB8D8C4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+        </Style>
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#FF1E6B3C"/>
+            <Setter Property="BorderBrush" Value="#FF3EA86B"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF2B8A50"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#FF224433"/>
+                                <Setter Property="Foreground" Value="#FF6E8E7B"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="250"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Game board -->
+        <Border Grid.Column="0" Margin="10">
+            <Border.Background>
+                <RadialGradientBrush Center="0.5,0.4" RadiusX="0.9" RadiusY="0.9">
+                    <GradientStop Color="#FF17663A" Offset="0"/>
+                    <GradientStop Color="#FF0B3D20" Offset="1"/>
+                </RadialGradientBrush>
+            </Border.Background>
+            <Canvas x:Name="BoardCanvas" ClipToBounds="True"/>
+        </Border>
+
+        <!-- Stats / control panel -->
+        <Border Grid.Column="1" Background="#FF10281B" CornerRadius="10" Margin="0,10,10,10" Padding="16">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="♠ SOLITAIRE ♥" Foreground="White" FontSize="22" FontWeight="Bold"
+                               HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                    <TextBlock x:Name="StatusText" Text="{Binding Status}" Foreground="#FFFFD766" FontSize="14"
+                               FontStyle="Italic" HorizontalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,8"/>
+
+                    <Button x:Name="NewGameButton" Style="{StaticResource ActionButton}" Content="🂠  New Game" Click="NewGameButton_Click"/>
+                    <Button x:Name="AutoPlayButton" Style="{StaticResource ActionButton}" Content="▶  Auto Play" Click="AutoPlayButton_Click"/>
+                    <Button x:Name="HintButton" Style="{StaticResource ActionButton}" Content="💡  Hint Move" Click="HintButton_Click"/>
+
+                    <TextBlock Text="SPEED" Style="{StaticResource StatLabel}" Margin="0,14,0,0"/>
+                    <Slider x:Name="SpeedSlider" Minimum="1" Maximum="10" Value="5" TickFrequency="1" IsSnapToTickEnabled="True"/>
+
+                    <Separator Margin="0,14,0,4" Background="#FF2B5A3E"/>
+
+                    <TextBlock Text="GAMES PLAYED" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{Binding GamesPlayed}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="GAMES WON" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{Binding GamesWon}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="WIN RATE" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{Binding WinRate}" Style="{StaticResource StatValue}" Foreground="#FF6FE09A"/>
+
+                    <TextBlock Text="CURRENT STREAK" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{Binding CurrentStreak}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="BEST STREAK" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{Binding BestStreak}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="MOVES (THIS GAME)" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{Binding CurrentMoves}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="TOTAL MOVES" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{Binding TotalMoves}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="CARDS ON FOUNDATION" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{Binding CardsToFoundation}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="FEWEST MOVES TO WIN" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{Binding BestWinMoves}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="FASTEST WIN" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{Binding FastestWinText}" Style="{StaticResource StatValue}"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
     </Grid>
 </Window>
