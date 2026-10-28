@@ -111,8 +111,10 @@ namespace GameTime
 
         private void RebuildBoard()
         {
+            HideWinBanner();
             BoardCanvas.Children.Clear();
             _cardViews.Clear();
+            _shownFaceUp.Clear();
             _placeholders.Clear();
             ComputeLayout();
 
@@ -181,7 +183,25 @@ namespace GameTime
                 Child = img,
                 Tag = card,
                 Cursor = Cursors.Hand,
+                RenderTransformOrigin = new Point(0.5, 0.5),
+                RenderTransform = new ScaleTransform(1, 1),
                 Effect = new DropShadowEffect { BlurRadius = 6, ShadowDepth = 2, Opacity = 0.45 }
+            };
+            border.MouseEnter += (_, _) =>
+            {
+                if (_autoPlaying || !card.IsFaceUp || border.RenderTransform is not ScaleTransform scale) return;
+                var anim = new DoubleAnimation(1.05, TimeSpan.FromMilliseconds(100));
+                scale.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+                scale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+                ((DropShadowEffect)border.Effect).Opacity = 0.75;
+            };
+            border.MouseLeave += (_, _) =>
+            {
+                if (border.RenderTransform is not ScaleTransform scale) return;
+                var anim = new DoubleAnimation(1.0, TimeSpan.FromMilliseconds(120));
+                scale.BeginAnimation(ScaleTransform.ScaleXProperty, anim);
+                scale.BeginAnimation(ScaleTransform.ScaleYProperty, anim);
+                ((DropShadowEffect)border.Effect).Opacity = 0.45;
             };
             border.MouseLeftButtonDown += (_, e) =>
             {
@@ -194,10 +214,37 @@ namespace GameTime
             UpdateCardFace(card);
         }
 
+        private readonly Dictionary<Card, bool> _shownFaceUp = new();
+
         private void UpdateCardFace(Card card)
         {
             var view = _cardViews[card];
-            ((Image)view.Child).Source = card.IsFaceUp ? _images[card.ImageKey] : _backImage;
+            var img = (Image)view.Child;
+            bool wasUp = _shownFaceUp.TryGetValue(card, out var up) && up;
+
+            if (wasUp == card.IsFaceUp || !IsLoaded)
+            {
+                img.Source = card.IsFaceUp ? _images[card.ImageKey] : _backImage;
+                _shownFaceUp[card] = card.IsFaceUp;
+                return;
+            }
+
+            // 3-D style flip: squeeze, swap face, expand.
+            _shownFaceUp[card] = card.IsFaceUp;
+            if (view.RenderTransform is not ScaleTransform scale)
+            {
+                img.Source = card.IsFaceUp ? _images[card.ImageKey] : _backImage;
+                return;
+            }
+            int half = Math.Max(AnimationMs / 3, 70);
+            var shrink = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(half)) { FillBehavior = FillBehavior.Stop };
+            shrink.Completed += (_, _) =>
+            {
+                img.Source = card.IsFaceUp ? _images[card.ImageKey] : _backImage;
+                scale.BeginAnimation(ScaleTransform.ScaleXProperty,
+                    new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(half)) { FillBehavior = FillBehavior.Stop });
+            };
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, shrink);
         }
 
         private (Pile pile, int index) Locate(Card card)
@@ -409,13 +456,58 @@ namespace GameTime
             _selectedCard = null;
         }
 
-        private void CheckGameEnd(bool manual)
+        private async void CheckGameEnd(bool manual)
         {
             if (_game.IsWon)
             {
                 _stats.RecordGameEnd(true, _game.MoveCount, DateTime.Now - _gameStart);
                 _stats.Status = "🎉 You won! Press New Game.";
+                await PlayWinCelebrationAsync();
             }
+        }
+
+        private async Task PlayWinCelebrationAsync()
+        {
+            // Burst every card outward with spin, then show the banner.
+            var rng = new Random();
+            double w = BoardCanvas.ActualWidth, h = BoardCanvas.ActualHeight;
+            int i = 0;
+            foreach (var view in _cardViews.Values)
+            {
+                Canvas.SetZIndex(view, 200 + i);
+                var rotate = new RotateTransform(0);
+                var group = new TransformGroup();
+                group.Children.Add(view.RenderTransform);
+                group.Children.Add(rotate);
+                view.RenderTransform = group;
+
+                int ms = 900 + rng.Next(700);
+                var ease = new CubicEase { EasingMode = EasingMode.EaseOut };
+                view.BeginAnimation(Canvas.LeftProperty,
+                    new DoubleAnimation(Canvas.GetLeft(view), rng.NextDouble() * w - _cardWidth / 2, TimeSpan.FromMilliseconds(ms)) { EasingFunction = ease });
+                view.BeginAnimation(Canvas.TopProperty,
+                    new DoubleAnimation(Canvas.GetTop(view), h - _cardHeight * (0.3 + rng.NextDouble() * 0.9), TimeSpan.FromMilliseconds(ms)) { EasingFunction = ease });
+                rotate.BeginAnimation(RotateTransform.AngleProperty,
+                    new DoubleAnimation(0, rng.Next(-360, 360), TimeSpan.FromMilliseconds(ms)) { EasingFunction = ease });
+                i++;
+                if (i % 8 == 0) await Task.Delay(40);
+            }
+
+            WinBanner.Visibility = Visibility.Visible;
+            var pop = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(450))
+            {
+                EasingFunction = new ElasticEase { EasingMode = EasingMode.EaseOut, Oscillations = 2, Springiness = 5 }
+            };
+            WinBannerScale.BeginAnimation(ScaleTransform.ScaleXProperty, pop);
+            WinBannerScale.BeginAnimation(ScaleTransform.ScaleYProperty, pop);
+            await Task.Delay(1400);
+        }
+
+        private void HideWinBanner()
+        {
+            WinBannerScale.BeginAnimation(ScaleTransform.ScaleXProperty, null);
+            WinBannerScale.BeginAnimation(ScaleTransform.ScaleYProperty, null);
+            WinBanner.Visibility = Visibility.Collapsed;
         }
 
         #endregion
@@ -443,9 +535,11 @@ namespace GameTime
                         bool won = _game.IsWon;
                         _stats.RecordGameEnd(won, _game.MoveCount, DateTime.Now - _gameStart);
                         _stats.Status = won ? "🏆 Computer won! Dealing next game…" : "Stuck — dealing next game…";
-                        await Task.Delay(won ? 1600 : 900);
+                        if (won) await PlayWinCelebrationAsync();
+                        await Task.Delay(won ? 800 : 900);
                         if (!_autoPlaying) break;
 
+                        HideWinBanner();
                         _game = new SolitaireGame(drawCount: DrawMode);
                         _autoPlayer = new AutoPlayer(_game);
                         _stats.CurrentMoves = 0;
@@ -475,6 +569,8 @@ namespace GameTime
         #region Buttons
 
         private void NewGameButton_Click(object sender, RoutedEventArgs e) => StartNewGame();
+
+        private void ResetStatsButton_Click(object sender, RoutedEventArgs e) => _stats.Reset();
 
         private void DrawModeChanged(object sender, RoutedEventArgs e)
         {

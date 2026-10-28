@@ -67,7 +67,19 @@
                     <GradientStop Color="#FF0B3D20" Offset="1"/>
                 </RadialGradientBrush>
             </Border.Background>
-            <Canvas x:Name="BoardCanvas" ClipToBounds="True"/>
+            <Grid>
+                <Canvas x:Name="BoardCanvas" ClipToBounds="True"/>
+                <TextBlock x:Name="WinBanner" Text="🏆 YOU WIN! 🏆" FontSize="64" FontWeight="Black"
+                           Foreground="Gold" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Visibility="Collapsed" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="24" ShadowDepth="0" Color="Black" Opacity="0.9"/>
+                    </TextBlock.Effect>
+                    <TextBlock.RenderTransform>
+                        <ScaleTransform x:Name="WinBannerScale" ScaleX="0" ScaleY="0"/>
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+            </Grid>
         </Border>
 
         <!-- Stats / control panel -->
@@ -86,6 +98,9 @@
                     <CheckBox x:Name="Draw3Check" Content="Draw 3 (classic)" IsChecked="True"
                               Foreground="#FFB8D8C4" FontSize="13" Margin="2,12,0,0"
                               Checked="DrawModeChanged" Unchecked="DrawModeChanged"/>
+
+                    <Button x:Name="ResetStatsButton" Style="{StaticResource ActionButton}" Content="🗑  Reset Stats"
+                            Background="#FF5A2B2B" BorderBrush="#FFA85050" Click="ResetStatsButton_Click"/>
 
                     <TextBlock Text="SPEED" Style="{StaticResource StatLabel}" Margin="0,14,0,0"/>
                     <Slider x:Name="SpeedSlider" Minimum="1" Maximum="10" Value="5" TickFrequency="1" IsSnapToTickEnabled="True"/>

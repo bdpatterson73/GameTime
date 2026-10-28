@@ -24,6 +24,11 @@ public sealed class AutoPlayer
         var moves = _game.GetLegalMoves();
         if (moves.Count == 0) { IsStuck = true; return null; }
 
+        // Prune tableau moves that accomplish nothing (e.g., shuttling a
+        // King-led pile between spots). They cause visible back-and-forth noise.
+        moves.RemoveAll(m => m.Kind == MoveKind.TableauToTableau && IsUselessTableauMove(m));
+        if (moves.Count == 0) { IsStuck = true; return null; }
+
         Move? best = null;
         int bestScore = int.MinValue;
         foreach (var m in moves)
@@ -62,6 +67,53 @@ public sealed class AutoPlayer
         }
 
         return best;
+    }
+
+    /// <summary>
+    /// A tableau-to-tableau move is useless when it neither reveals a
+    /// face-down card nor meaningfully frees a column.
+    /// </summary>
+    private bool IsUselessTableauMove(Move m)
+    {
+        var from = m.From!;
+        var to = m.To!;
+        int start = from.Count - m.CardCount;
+        var movingCard = from.Cards[start];
+
+        // Moving reveals a face-down card: always useful.
+        if (start > 0 && !from.Cards[start - 1].IsFaceUp) return false;
+
+        // Run starts at the bottom of its column.
+        if (start == 0)
+        {
+            // A King-led full column gains nothing by relocating to another
+            // empty spot — this is the classic shuttle move.
+            if (movingCard.Rank == Rank.King) return true;
+            // A non-King full run moving onto another pile frees the column
+            // for a King: useful only if a King is actually available to take it.
+            return !KingWaitingForEmptyColumn();
+        }
+
+        // The card exposed underneath is face-up. Useful only if it becomes
+        // immediately playable to a foundation; otherwise it's shuffling.
+        var exposed = from.Cards[start - 1];
+        return !_game.Foundations.Any(f => SolitaireGame.CanPlaceOnFoundation(exposed, f));
+    }
+
+    private bool KingWaitingForEmptyColumn()
+    {
+        // A King (not already at the bottom of a column) in the waste or a tableau
+        // that could use a freed column.
+        if (_game.Waste.Top is { Rank: Rank.King }) return true;
+        foreach (var t in _game.Tableaus)
+        {
+            for (int i = 1; i < t.Count; i++)
+            {
+                var c = t.Cards[i];
+                if (c.IsFaceUp && c.Rank == Rank.King) return true;
+            }
+        }
+        return false;
     }
 
     private string Fingerprint(Move m)

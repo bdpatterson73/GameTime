@@ -43,6 +43,21 @@ public sealed class GameStats : INotifyPropertyChanged
     public string WinRate => GamesPlayed == 0 ? "—" : $"{(double)GamesWon / GamesPlayed:P1}";
     public string FastestWinText => FastestWin == TimeSpan.Zero ? "—" : $"{FastestWin:mm\\:ss}";
 
+    public void Reset()
+    {
+        GamesPlayed = 0;
+        GamesWon = 0;
+        CurrentMoves = 0;
+        BestWinMoves = 0;
+        CurrentStreak = 0;
+        BestStreak = 0;
+        TotalMoves = 0;
+        CardsToFoundation = 0;
+        FastestWin = TimeSpan.Zero;
+        Status = "Stats cleared.";
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(WinRate)));
+    }
+
     public void RecordGameEnd(bool won, int moves, TimeSpan duration)
     {
         GamesPlayed++;
