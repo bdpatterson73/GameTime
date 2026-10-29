@@ -69,6 +69,22 @@ public sealed class MazeWorld
                 Grid[r, c] = 0;
         }
 
+        // Tag a handful of corridor-facing walls as graffiti walls ("Brian was here").
+        const int GraffitiWall = 4;
+        var wallCandidates = new List<(int r, int c)>();
+        for (int r = 1; r < size - 1; r++)
+            for (int c = 1; c < size - 1; c++)
+                if (Grid[r, c] is >= 1 and < GraffitiWall && CountFloorNeighbors(r, c) >= 1)
+                    wallCandidates.Add((r, c));
+        int graffitiCount = Math.Min(8, wallCandidates.Count);
+        for (int i = 0; i < graffitiCount; i++)
+        {
+            int idx = _random.Next(wallCandidates.Count);
+            var (r, c) = wallCandidates[idx];
+            wallCandidates.RemoveAt(idx);
+            Grid[r, c] = GraffitiWall;
+        }
+
         SpawnX = 1.5;
         SpawnY = 1.5;
 

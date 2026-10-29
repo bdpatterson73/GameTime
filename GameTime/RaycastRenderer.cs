@@ -39,6 +39,95 @@ public sealed class RaycastRenderer
         Height = height;
         Buffer = new int[width * height];
         _zBuffer = new double[width];
+        _graffitiTexes = BuildGraffitiTextures();
+    }
+
+    private const int TexSize = 256;
+    private const int GraffitiWallType = 4;
+    private readonly int[][] _graffitiTexes;
+
+    private static readonly (string Line1, string Line2)[] GraffitiMessages =
+    {
+        ("Brian", "was here"),
+        ("I shot the", "sheriff..."),
+        ("Danger!", "Wet paint"),
+        ("Lost? So", "am I..."),
+        ("Minotaur", "on break"),
+        ("Exit is", "that way ->"),
+        ("No WiFi", "down here"),
+        ("Honk if you", "love mazes"),
+        ("Help, I live", "here now"),
+        ("Turn back!", "(just kidding)")
+    };
+
+    /// <summary>Builds one spray-painted graffiti wall texture per message.</summary>
+    private static int[][] BuildGraffitiTextures()
+    {
+        var texes = new int[GraffitiMessages.Length][];
+        for (int i = 0; i < texes.Length; i++)
+            texes[i] = BuildGraffitiTexture(GraffitiMessages[i].Line1, GraffitiMessages[i].Line2);
+        return texes;
+    }
+
+    /// <summary>Rasterizes a spray-painted message onto a stone wall texture.</summary>
+    private static int[] BuildGraffitiTexture(string line1, string line2)
+    {
+        var visual = new System.Windows.Media.DrawingVisual();
+        using (var dc = visual.RenderOpen())
+        {
+            // Stone background with subtle horizontal banding.
+            dc.DrawRectangle(new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(110, 118, 136)),
+                null, new System.Windows.Rect(0, 0, TexSize, TexSize));
+            var band = new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(98, 106, 124));
+            for (int y = 0; y < TexSize; y += 32)
+                dc.DrawRectangle(band, null, new System.Windows.Rect(0, y, TexSize, 3));
+
+            dc.PushTransform(new System.Windows.Media.RotateTransform(-7, TexSize / 2.0, TexSize / 2.0));
+            var typeface = new System.Windows.Media.Typeface(
+                new System.Windows.Media.FontFamily("Segoe Print, Comic Sans MS, Arial"),
+                System.Windows.FontStyles.Italic, System.Windows.FontWeights.Bold,
+                System.Windows.FontStretches.Normal);
+
+            void SprayText(string text, double size, double x, double y,
+                System.Windows.Media.Color color, System.Windows.Media.Color shadow)
+            {
+                var ftShadow = new System.Windows.Media.FormattedText(text,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Windows.FlowDirection.LeftToRight, typeface, size,
+                    new System.Windows.Media.SolidColorBrush(shadow), 1.0);
+                dc.DrawText(ftShadow, new System.Windows.Point(x + 3, y + 3));
+                var ft = new System.Windows.Media.FormattedText(text,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Windows.FlowDirection.LeftToRight, typeface, size,
+                    new System.Windows.Media.SolidColorBrush(color), 1.0);
+                dc.DrawText(ft, new System.Windows.Point(x, y));
+            }
+
+            double FitSize(string text, double size)
+            {
+                var probe = new System.Windows.Media.FormattedText(text,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Windows.FlowDirection.LeftToRight, typeface, size,
+                    System.Windows.Media.Brushes.White, 1.0);
+                double max = TexSize - 40;
+                return probe.Width > max ? size * max / probe.Width : size;
+            }
+
+            var sprayYellow = System.Windows.Media.Color.FromRgb(255, 224, 70);
+            var sprayDark = System.Windows.Media.Color.FromRgb(40, 36, 20);
+            SprayText(line1, FitSize(line1, 62), 42, 55, sprayYellow, sprayDark);
+            SprayText(line2, FitSize(line2, 44), 36, 130, sprayYellow, sprayDark);
+            dc.Pop();
+        }
+
+        var rtb = new System.Windows.Media.Imaging.RenderTargetBitmap(
+            TexSize, TexSize, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+        rtb.Render(visual);
+        var pixels = new int[TexSize * TexSize];
+        rtb.CopyPixels(pixels, TexSize * 4, 0);
+        return pixels;
     }
 
     public void Render(MazeWorld world, ShooterBot bot, double time)
@@ -107,16 +196,44 @@ public sealed class RaycastRenderer
             _zBuffer[x] = dist;
 
             int lineH = (int)(Height / dist);
-            int drawStart = Math.Max(0, Height / 2 - lineH / 2);
+            int lineTop = Height / 2 - lineH / 2;
+            int drawStart = Math.Max(0, lineTop);
             int drawEnd = Math.Min(Height - 1, Height / 2 + lineH / 2);
 
-            var (r, g, b) = WallColors[Math.Min(wallType, WallColors.Length - 1)];
             double shade = Math.Clamp(1.0 / (1.0 + dist * 0.22), 0.12, 1.0);
             if (side == 1) shade *= 0.72;
-            int color = Pack((byte)(r * shade), (byte)(g * shade), (byte)(b * shade));
 
-            for (int y = drawStart; y <= drawEnd; y++)
-                Buffer[y * Width + x] = color;
+            if (wallType == GraffitiWallType && lineH > 0)
+            {
+                // Texture-mapped graffiti wall.
+                double wallX = side == 0 ? bot.Y + dist * rayY : bot.X + dist * rayX;
+                wallX -= Math.Floor(wallX);
+                int texX = Math.Clamp((int)(wallX * TexSize), 0, TexSize - 1);
+                if ((side == 0 && rayX < 0) || (side == 1 && rayY > 0))
+                    texX = TexSize - 1 - texX;
+
+                // Pick a message deterministically per wall cell so each wall keeps its own text.
+                int[] graffiti = _graffitiTexes[(mapX * 73856093 ^ mapY * 19349663) % _graffitiTexes.Length switch
+                {
+                    var m when m < 0 => m + _graffitiTexes.Length,
+                    var m => m
+                }];
+
+                for (int y = drawStart; y <= drawEnd; y++)
+                {
+                    int texY = Math.Clamp((y - lineTop) * TexSize / lineH, 0, TexSize - 1);
+                    int tex = graffiti[texY * TexSize + texX];
+                    byte tr = (byte)((tex >> 16) & 0xFF), tg = (byte)((tex >> 8) & 0xFF), tb = (byte)(tex & 0xFF);
+                    Buffer[y * Width + x] = Pack((byte)(tr * shade), (byte)(tg * shade), (byte)(tb * shade));
+                }
+            }
+            else
+            {
+                var (r, g, b) = WallColors[Math.Min(wallType, WallColors.Length - 1)];
+                int color = Pack((byte)(r * shade), (byte)(g * shade), (byte)(b * shade));
+                for (int y = drawStart; y <= drawEnd; y++)
+                    Buffer[y * Width + x] = color;
+            }
         }
     }
 
