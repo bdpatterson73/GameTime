@@ -1,0 +1,112 @@
+<Window x:Class="GameTime.ShooterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GameTime Maze Blaster" Height="760" Width="1240"
+        WindowStartupLocation="CenterScreen"
+        Background="#FF16161E">
+    <Window.Resources>
+        <Style x:Key="StatLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FFB0B0C4"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0,8,0,0"/>
+        </Style>
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Margin" Value="0,6,0,0"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#FF3A3A52"/>
+            <Setter Property="BorderBrush" Value="#FF6A6A92"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF4C4C6A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="250"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Margin="10" Background="Black" CornerRadius="10" ClipToBounds="True">
+            <Grid>
+                <Image x:Name="ViewImage" Stretch="Uniform" RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                <TextBlock x:Name="ClearBanner" Text="✅ MAZE CLEARED!" FontSize="52" FontWeight="Black"
+                           Foreground="LawnGreen" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Visibility="Collapsed" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+                    <TextBlock.Effect>
+                        <DropShadowEffect BlurRadius="24" ShadowDepth="0" Color="Black" Opacity="0.95"/>
+                    </TextBlock.Effect>
+                    <TextBlock.RenderTransform>
+                        <ScaleTransform x:Name="ClearBannerScale" ScaleX="0" ScaleY="0"/>
+                    </TextBlock.RenderTransform>
+                </TextBlock>
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="1" Background="#FF1E1E2A" CornerRadius="10" Margin="0,10,10,10" Padding="16">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <TextBlock Text="🔫 MAZE BLASTER" Foreground="White" FontSize="20" FontWeight="Bold"
+                               HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                    <TextBlock x:Name="StatusText" Text="Press Start to watch." Foreground="#FFFFD766" FontSize="14"
+                               FontStyle="Italic" HorizontalAlignment="Center" TextWrapping="Wrap" Margin="0,0,0,8"/>
+
+                    <Button x:Name="StartStopButton" Style="{StaticResource ActionButton}" Content="▶  Start" Click="StartStopButton_Click"/>
+                    <Button x:Name="NewMazeButton" Style="{StaticResource ActionButton}" Content="🌀  New Maze" Click="NewMazeButton_Click"/>
+                    <Button x:Name="ResetStatsButton" Style="{StaticResource ActionButton}" Content="🗑  Reset Stats"
+                            Background="#FF5A2B2B" BorderBrush="#FFA85050" Click="ResetStatsButton_Click"/>
+
+                    <TextBlock Text="SPEED" Style="{StaticResource StatLabel}" Margin="0,14,0,0"/>
+                    <Slider x:Name="SpeedSlider" Minimum="1" Maximum="10" Value="5" TickFrequency="1" IsSnapToTickEnabled="True"/>
+
+                    <Separator Margin="0,14,0,4" Background="#FF34344A"/>
+
+                    <TextBlock Text="TARGETS REMAINING" Style="{StaticResource StatLabel}"/>
+                    <TextBlock x:Name="TargetsLeftText" Text="0" Style="{StaticResource StatValue}" Foreground="#FFFF8A8A"/>
+
+                    <TextBlock Text="MAZES CLEARED" Style="{StaticResource StatLabel}"/>
+                    <TextBlock x:Name="MazesClearedText" Text="0" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="TARGETS DESTROYED" Style="{StaticResource StatLabel}"/>
+                    <TextBlock x:Name="KillsText" Text="0" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="SHOTS FIRED" Style="{StaticResource StatLabel}"/>
+                    <TextBlock x:Name="ShotsText" Text="0" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="ACCURACY" Style="{StaticResource StatLabel}"/>
+                    <TextBlock x:Name="AccuracyText" Text="—" Style="{StaticResource StatValue}" Foreground="#FF9A9AE0"/>
+
+                    <TextBlock Text="THIS MAZE" Style="{StaticResource StatLabel}"/>
+                    <TextBlock x:Name="MazeTimeText" Text="00:00" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="FASTEST CLEAR" Style="{StaticResource StatLabel}"/>
+                    <TextBlock x:Name="FastestClearText" Text="—" Style="{StaticResource StatValue}"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Window>

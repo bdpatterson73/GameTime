@@ -1,7 +1,7 @@
 <Window x:Class="GameTime.GameSelectWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="GameTime — Choose a Game" Height="520" Width="900"
+        Title="GameTime — Choose a Game" Height="520" Width="1160"
         WindowStartupLocation="CenterScreen"
         Background="#FF0E1B14">
     <Window.Resources>
@@ -83,6 +83,14 @@
                     <TextBlock Text="💣" Style="{StaticResource CardIcon}"/>
                     <TextBlock Text="Minesweeper" Style="{StaticResource CardTitle}"/>
                     <TextBlock Text="16×16, 40 mines. The auto-solver deduces, flags, and gambles."
+                               Style="{StaticResource CardBlurb}"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource GameCard}" Click="Shooter_Click">
+                <StackPanel>
+                    <TextBlock Text="🔫" Style="{StaticResource CardIcon}"/>
+                    <TextBlock Text="Maze Blaster" Style="{StaticResource CardTitle}"/>
+                    <TextBlock Text="Watch-only: a bot roams a random 3D maze blasting creatures."
                                Style="{StaticResource CardBlurb}"/>
                 </StackPanel>
             </Button>

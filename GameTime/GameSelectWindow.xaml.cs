@@ -20,5 +20,6 @@ namespace GameTime
         private void Solitaire_Click(object sender, RoutedEventArgs e) => Launch(new MainWindow());
         private void FreeCell_Click(object sender, RoutedEventArgs e) => Launch(new FreeCellWindow());
         private void Minesweeper_Click(object sender, RoutedEventArgs e) => Launch(new MinesweeperWindow());
+        private void Shooter_Click(object sender, RoutedEventArgs e) => Launch(new ShooterWindow());
     }
 }
