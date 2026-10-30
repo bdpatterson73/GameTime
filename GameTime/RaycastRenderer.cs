@@ -50,14 +50,16 @@ public sealed class RaycastRenderer
     {
         ("Brian", "was here"),
         ("I shot the", "sheriff..."),
-        ("Danger!", "Wet paint"),
-        ("Lost? So", "am I..."),
-        ("Minotaur", "on break"),
+        ("You are", "not good at this.."),
+        ("This wall", "is load bearing"),
+        ("404 Error", "Exit not found"),
         ("Exit is", "that way ->"),
         ("No WiFi", "down here"),
-        ("Honk if you", "love mazes"),
-        ("Help, I live", "here now"),
-        ("Turn back!", "(just kidding)")
+        ("The developer", "hates you"),
+        ("You again?", "Still lost?"),
+        ("Exit ahead", "just 900 miles"),
+        ("Stop Reading", "and find the exit"),
+        ("This way", "to disappointment")
     };
 
     /// <summary>Builds one spray-painted graffiti wall texture per message.</summary>
