@@ -1,0 +1,77 @@
+<Page
+    x:Class="GameTime.WinUI.Pages.MinesweeperPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    NavigationCacheMode="Required">
+    <Page.Resources>
+        <Style x:Key="StatLabel" TargetType="TextBlock" BasedOn="{StaticResource StatLabelStyle}">
+            <Setter Property="Foreground" Value="#FFC0C0CC"/>
+        </Style>
+        <Style x:Key="StatValue" TargetType="TextBlock" BasedOn="{StaticResource StatValueStyle}"/>
+        <Style x:Key="ActionButton" TargetType="Button" BasedOn="{StaticResource GameButtonStyle}">
+            <Setter Property="Background" Value="#FF44445A"/>
+            <Setter Property="BorderBrush" Value="#FF70708E"/>
+        </Style>
+    </Page.Resources>
+
+    <Grid Background="#FF2A2A33">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="250"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Margin="10" Background="#FF1E1E26" CornerRadius="10">
+            <Grid>
+                <Viewbox Margin="14" Stretch="Uniform">
+                    <Canvas x:Name="BoardCanvas"/>
+                </Viewbox>
+                <Border x:Name="ResultBanner" Style="{StaticResource BannerStyle}" Visibility="Collapsed">
+                    <TextBlock x:Name="ResultBannerText" Style="{StaticResource BannerTextStyle}"/>
+                </Border>
+            </Grid>
+        </Border>
+
+        <Border Grid.Column="1" Background="#FF22222C" CornerRadius="10" Margin="0,10,10,10" Padding="16">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,4">
+                        <TextBlock x:Name="HeaderIcon" Text="💣" Style="{StaticResource SidebarTitleStyle}"/>
+                        <TextBlock Text=" MINESWEEPER" Style="{StaticResource SidebarTitleStyle}"/>
+                    </StackPanel>
+                    <TextBlock Text="{x:Bind Stats.Status, Mode=OneWay}" Style="{StaticResource StatusTextStyle}"/>
+
+                    <Button x:Name="NewGameButton" Style="{StaticResource ActionButton}" Content="🔄  New Game" Click="NewGameButton_Click"/>
+                    <Button x:Name="AutoPlayButton" Style="{StaticResource ActionButton}" Content="▶  Auto Play" Click="AutoPlayButton_Click"/>
+                    <Button x:Name="ResetStatsButton" Style="{StaticResource ActionButton}" Content="🗑  Reset Stats"
+                            Background="#FF5A2B2B" BorderBrush="#FFA85050" Click="ResetStatsButton_Click"/>
+
+                    <TextBlock Text="SPEED" Style="{StaticResource StatLabel}" Margin="0,14,0,0"/>
+                    <Slider x:Name="SpeedSlider" Minimum="1" Maximum="10" Value="6" StepFrequency="1"/>
+
+                    <Rectangle Height="1" Margin="0,14,0,4" Fill="#FF3A3A4A"/>
+
+                    <TextBlock Text="MINES REMAINING" Style="{StaticResource StatLabel}"/>
+                    <TextBlock x:Name="MinesLeftText" Text="40" Style="{StaticResource StatValue}" Foreground="#FFFF8A8A"/>
+
+                    <TextBlock Text="GAMES PLAYED" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{x:Bind Stats.GamesPlayed, Mode=OneWay}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="GAMES WON" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{x:Bind Stats.GamesWon, Mode=OneWay}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="WIN RATE" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{x:Bind Stats.WinRate, Mode=OneWay}" Style="{StaticResource StatValue}" Foreground="#FF9A9AE0"/>
+
+                    <TextBlock Text="CURRENT STREAK" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{x:Bind Stats.CurrentStreak, Mode=OneWay}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="BEST STREAK" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{x:Bind Stats.BestStreak, Mode=OneWay}" Style="{StaticResource StatValue}"/>
+
+                    <TextBlock Text="FASTEST WIN" Style="{StaticResource StatLabel}"/>
+                    <TextBlock Text="{x:Bind Stats.FastestWinText, Mode=OneWay}" Style="{StaticResource StatValue}"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</Page>

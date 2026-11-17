@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="GameTime/GameTime.csproj" />
+  <Project Path="GameTime.WinUI/GameTime.WinUI.csproj">
+    <Platform Project="x64" />
+  </Project>
 </Solution>
