@@ -9,8 +9,10 @@
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Sidebar action button. Pages supply Background/BorderBrush; hover and press are a
-                 compositor-animated highlight so the same template works for every palette. -->
+            <!-- Sidebar action button. Pages supply Background/BorderBrush; hover and press fade a white
+                 highlight, so the same template works for every palette.
+                 The fade must stay a visual-state storyboard: an implicit OpacityTransition on a template
+                 part crashes WinUI (null framework peer) the first time the pointer enters the button. -->
             <Style x:Key="GameButtonStyle" TargetType="Button">
                 <Setter Property="HorizontalAlignment" Value="Stretch"/>
                 <Setter Property="Margin" Value="0,6,0,0"/>
@@ -31,29 +33,31 @@
                                   CornerRadius="{TemplateBinding CornerRadius}">
                                 <VisualStateManager.VisualStateGroups>
                                     <VisualStateGroup x:Name="CommonStates">
+                                        <VisualStateGroup.Transitions>
+                                            <VisualTransition GeneratedDuration="0:0:0.083"/>
+                                        </VisualStateGroup.Transitions>
                                         <VisualState x:Name="Normal"/>
                                         <VisualState x:Name="PointerOver">
-                                            <VisualState.Setters>
-                                                <Setter Target="Highlight.Opacity" Value="0.14"/>
-                                            </VisualState.Setters>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Highlight" Storyboard.TargetProperty="Opacity"
+                                                                 To="0.14" Duration="0"/>
+                                            </Storyboard>
                                         </VisualState>
                                         <VisualState x:Name="Pressed">
-                                            <VisualState.Setters>
-                                                <Setter Target="Highlight.Opacity" Value="0.05"/>
-                                            </VisualState.Setters>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Highlight" Storyboard.TargetProperty="Opacity"
+                                                                 To="0.05" Duration="0"/>
+                                            </Storyboard>
                                         </VisualState>
                                         <VisualState x:Name="Disabled">
-                                            <VisualState.Setters>
-                                                <Setter Target="Root.Opacity" Value="0.5"/>
-                                            </VisualState.Setters>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetName="Root" Storyboard.TargetProperty="Opacity"
+                                                                 To="0.5" Duration="0"/>
+                                            </Storyboard>
                                         </VisualState>
                                     </VisualStateGroup>
                                 </VisualStateManager.VisualStateGroups>
-                                <Rectangle x:Name="Highlight" Fill="White" Opacity="0">
-                                    <Rectangle.OpacityTransition>
-                                        <ScalarTransition Duration="0:0:0.083"/>
-                                    </Rectangle.OpacityTransition>
-                                </Rectangle>
+                                <Rectangle x:Name="Highlight" Fill="White" Opacity="0"/>
                                 <ContentPresenter Content="{TemplateBinding Content}"
                                                   ContentTemplate="{TemplateBinding ContentTemplate}"
                                                   Padding="{TemplateBinding Padding}"

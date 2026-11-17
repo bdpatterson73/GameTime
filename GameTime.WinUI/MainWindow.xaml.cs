@@ -14,6 +14,7 @@ namespace GameTime.WinUI;
 /// <summary>
 /// Single-window shell. Games are pages hosted in one Frame, so switching between
 /// the hub and a game is an in-window composition transition instead of a new window.
+/// Closing the window while a game is open returns to the hub; closing the hub exits.
 /// </summary>
 public sealed partial class MainWindow : Window
 {
@@ -31,6 +32,7 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
         SizeAndCenter(1320, 900);
+        AppWindow.Closing += AppWindow_Closing;
 
         // The XAML parser can't convert "GoBack" to a VirtualKey, so this accelerator is added here.
         var browserBack = new KeyboardAccelerator { Key = VirtualKey.GoBack };
@@ -52,6 +54,15 @@ public sealed partial class MainWindow : Window
     private void GoBack()
     {
         if (RootFrame.CanGoBack) RootFrame.GoBack();
+    }
+
+    private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (!RootFrame.CanGoBack) return;
+
+        // A game is open: closing it brings back the game selector instead of ending the app.
+        args.Cancel = true;
+        GoBack();
     }
 
     private void RootFrame_Navigated(object sender, NavigationEventArgs e)
